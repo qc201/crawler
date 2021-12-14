@@ -25,6 +25,12 @@ class Crawler:
 
     def getStateLink(self):
 
+        # open a csv file and write a header.
+        csvContent = open("ChamberData.csv", "a", newline="")
+        headerList = ["Chamber's Name", "State", "City", "ZIP", "Website"]
+        writer = csv.writer(csvContent)
+        writer.writerow(headerList)
+
         #for state in range(1):
         for state in self.states:
 
@@ -82,9 +88,7 @@ class Crawler:
 
                         #print(links)
                         
-                        csvContent = open("ChamberData.csv", "a", newline="")
-                        # headerList = ["Chamber's Name", "State", "City", "ZIP", "Website"]
-                        writer = csv.writer(csvContent)
+                        # write to csv file line by line
                         writer.writerow(links)
         
         # close the csv file
