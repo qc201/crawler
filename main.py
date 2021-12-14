@@ -41,7 +41,7 @@ class Crawler:
                 # verify if the form contain the website link
                 if link.get("href").startswith("//"):
                     links = []
-                    webLink = "https:" + str(link.get("href"))
+                    webLink = str(link.get("href"))[2:]
 
                     # find the parent block of the valid link
                     parent = link.parent.parent.parent
