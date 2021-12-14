@@ -10,6 +10,7 @@ import re
 import csv
 
 
+
 class Crawler:
     def __init__(self):
         # main webpage
@@ -50,8 +51,11 @@ class Crawler:
                     nameIteral = nameObj.finditer(str(rawName))
 
                     rawAddress = parent.find('a', 'chamber-finder__card-details')
-                    addressObj = re.compile(r'<br/>(?P<address>.*?)</a>', re.S)
-                    addressIteral = addressObj.finditer(str(rawAddress))
+                    #print(rawAddress)
+                    addressObj_city = re.compile(r'<br/>(?P<city>.*?),', re.S)
+                    addressObj_zip = re.compile(r'<br/>(?P<address>.*?)</a>', re.S)
+                    addressIteral_city = addressObj_city.finditer(str(rawAddress))
+                    addressIteral_zip = addressObj_zip.finditer(str(rawAddress))
 
                     # get Chamber's name from the raw HTML
                     # add state base on the current page
@@ -60,17 +64,30 @@ class Crawler:
                         links.append(str(state))
 
                         # get zip code from the raw HTML
-                        for address in addressIteral:
-                            fullAddress = address.group("address")
-                            zip = re.search(r"\d+", fullAddress)
-                            links.append(zip.group().strip())
-                            links.append(webLink)
+                        for address in addressIteral_city:
+                            fullAddress = address.group("city")
+                            #print(fullAddress)
+                            #fullAddress = address.group("address")
+                            #zip = re.search(r"\d+", fullAddress)
+                            
+                            links.append(fullAddress.strip())
+                            #links.append(zip.group().strip())
+                            for cityName in addressIteral_zip:
+                                zipCode = cityName.group("address")
+                                zip = re.search(r"\d+", zipCode)
+                                links.append(zip.group().strip())
+                                links.append(webLink)
 
 
 
+                        #print(links)
+                        
                         csvContent = open("ChamberData.csv", "a", newline="")
+                        # headerList = ["Chamber's Name", "State", "City", "ZIP", "Website"]
                         writer = csv.writer(csvContent)
                         writer.writerow(links)
+        
+        # close the csv file
         csvContent.close()
 
 
