@@ -1,12 +1,15 @@
 
 """
 encoding: urf-8
-author: Qiuyu Chen
+author: qchan.cs@gmail.com
 """
 
 import requests
 from bs4 import BeautifulSoup
 import re
+import csv
+
+
 class Crawler:
     def __init__(self):
         # main webpage
@@ -20,7 +23,7 @@ class Crawler:
             {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'}
 
     def getStateLink(self):
-        links = []
+
         # for state in range(1):
         for state in range(1):
             # for state in self.states:
@@ -33,35 +36,42 @@ class Crawler:
 
             superLinks = soup.find_all("a")
 
+
             for link in superLinks:
+                # verify if the form contain the website link
                 if link.get("href").startswith("//"):
+                    links = []
                     webLink = "https:" + str(link.get("href"))
-                    # r = requests.head(webLink).status_code
-                    if webLink not in links:  # and r == 200:
-                        links.append(webLink)
-                        parent = link.parent.parent.parent
-                        rawName = parent.find('header', 'chamber-finder__title')
-                        nameObj = re.compile(r'<header class="chamber-finder__title">(?P<name>.*?)</header>', re.S)
-                        nameIteral = nameObj.finditer(str(rawName))
-                        for name in nameIteral:
-                            print(name.group("name"))
 
-                        rawAddress = parent.find('a', 'chamber-finder__card-details')
-                        addressObj = re.compile(r'<br/>(?P<address>.*?)</a>', re.S)
+                    # find the parent block of the valid link
+                    parent = link.parent.parent.parent
+                    rawName = parent.find('header', 'chamber-finder__title')
+                    nameObj = re.compile(r'<header class="chamber-finder__title">(?P<name>.*?)</header>', re.S)
+                    nameIteral = nameObj.finditer(str(rawName))
 
-                        #print(rawAddress)
-                        addressIteral = addressObj.finditer(str(rawAddress))
+                    rawAddress = parent.find('a', 'chamber-finder__card-details')
+                    addressObj = re.compile(r'<br/>(?P<address>.*?)</a>', re.S)
+                    addressIteral = addressObj.finditer(str(rawAddress))
+
+                    # get Chamber's name from the raw HTML
+                    # add state base on the current page
+                    for name in nameIteral:
+                        links.append(name.group("name").replace("\n", "").strip())
+                        links.append("stateName")
+
+                        # get zip code from the raw HTML
                         for address in addressIteral:
                             fullAddress = address.group("address")
                             zip = re.search(r"\d+", fullAddress)
-                            print(zip.group())
-                        print(webLink)
+                            links.append(zip.group().strip())
+                            links.append(webLink)
 
 
 
-
-        #print(links)
-        #print(len(links))
+                        csvContent = open("ChamberData.csv", "a", newline="")
+                        writer = csv.writer(csvContent)
+                        writer.writerow(links)
+        csvContent.close()
 
 
 if __name__ == "__main__":
